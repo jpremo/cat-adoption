@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import './adopt-page.css';
 import { getTableData } from '../../utils/utils.js';
@@ -26,29 +26,57 @@ const AdoptPage = () => {
     const [catList, setCatList] = useState([]);
 
     useEffect(() => {
-        getTableData('NewDatabase').then((data) => {
-            console.log(data);
-            setCatList(data.records);
-        });
+        fetchCats();
     }, []);
+
+    const fetchCats = async () => {
+        try {
+            const [{ records: newRecords }, { records: oldRecords }] = await Promise.all([
+                getTableData('NewDatabase'),
+                getTableData('OldDatabase'),
+            ]);
+
+            const catMap = [...oldRecords.map(record => ({...record, old: true})), ...newRecords].reduce((result, record) => {
+                const key = record.fields.name + (record.fields.imageUrl || record.fields.image);
+
+                return {
+                    ...result,
+                    [key]: {
+                        ...record,
+                        fields: {
+                            ...record.fields,
+                            imageUrl: record.fields.imageUrl || record.fields.image,
+                        },
+                    },
+                }
+            }, {});
+
+            setCatList(Object.values(catMap));
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
     return (
         <div className="adopt-page">
             <h1>Adopt One of These Cats!</h1>
             <table>
                 <thead>
-                    {tableHeaders.map((headerInfo) => {
-                        return <th>{headerInfo.title}</th>;
-                    })}
+                    <tr>
+                        {tableHeaders.map((headerInfo) => {
+                            return <th key={headerInfo.title}>{headerInfo.title}</th>;
+                        })}
+                    </tr>
                 </thead>
                 <tbody>
                     {catList.map((catInfo) => {
                         return (
-                            <tr className="cat-summary">
+                            <tr className="cat-summary" key={catInfo.id}>
                                 <td>
                                     <img src={catInfo.fields.imageUrl} />
                                 </td>
                                 <td>
-                                    <Link to={`/cat/${catInfo.id}`}>
+                                    <Link to={`/cat/${catInfo.old ? 'old' : 'new'}/${catInfo.id}`}>
                                         {catInfo.fields.name}
                                     </Link>
                                 </td>
