@@ -25,25 +25,62 @@ const tableHeaders = [
 const AdoptPage = () => {
     const [catList, setCatList] = useState([]);
 
+    const compareCats = (cat1, cat2) => {
+        if(cat1.name === cat2.name && cat1.intakeDate === cat2.intakeDate) {
+            return true
+        }
+        return false
+    }
+    
+    const updateFormat = (cat) => {
+        const fields = cat.fields
+        return {
+            id: cat.id,
+            createdTime: cat.createdTime,
+            fields:  {
+                name: fields.name,
+                imageUrl: fields.image,
+                intakeDate: fields.intakeDate,
+                microchipped: fields.microchipped,
+                vaccinated: "not provided",
+                age: fields.age,
+                description: "not provided"
+            }
+        }
+    }
+    
+    const fetchCats = async () => {
+        const newDBRecords = await getTableData('NewDatabase')
+
+        const oldDBRecords = await getTableData('OldDatabase')
+
+        const uniqueRecords = newDBRecords.records
+
+        oldDBRecords.records.forEach((newCat) => {
+            if(!uniqueRecords.some((cat) => compareCats(cat.fields, newCat.fields))) {
+                uniqueRecords.push(updateFormat(newCat))
+            }
+        })
+        setCatList(uniqueRecords)
+    }
+
     useEffect(() => {
-        getTableData('NewDatabase').then((data) => {
-            console.log(data);
-            setCatList(data.records);
-        });
+        fetchCats()
     }, []);
+
     return (
         <div className="adopt-page">
             <h1>Adopt One of These Cats!</h1>
             <table>
                 <thead>
                     {tableHeaders.map((headerInfo) => {
-                        return <th>{headerInfo.title}</th>;
+                        return <th key={headerInfo.title} >{headerInfo.title}</th>;
                     })}
                 </thead>
                 <tbody>
-                    {catList.map((catInfo) => {
+                    {catList.map((catInfo, index) => {
                         return (
-                            <tr className="cat-summary">
+                            <tr className="cat-summary" key={index}>
                                 <td>
                                     <img src={catInfo.fields.imageUrl} />
                                 </td>
