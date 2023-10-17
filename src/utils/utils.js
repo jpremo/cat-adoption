@@ -10,5 +10,6 @@ export const getTableData = async (databaseName) => {
         }
     );
     const data = await res.json();
+    console.log(data);
     return data;
 };

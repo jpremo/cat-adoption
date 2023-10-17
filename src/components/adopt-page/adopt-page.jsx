@@ -54,8 +54,8 @@ const AdoptPage = () => {
                                 </td>
                                 <td>{catInfo.fields.age}</td>
                                 <td>{catInfo.fields.description}</td>
-                                <td>{catInfo.fields.vaccinated}</td>
-                                <td>{catInfo.fields.microchipped}</td>
+                                <td>{catInfo.fields.vaccinated === 1 ? 'Yes' : 'No'}</td>
+                                <td>{catInfo.fields.microchipped === 1 ? 'Yes' : 'No'}</td>
                             </tr>
                         );
                     })}
